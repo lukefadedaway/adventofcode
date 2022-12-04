@@ -102,6 +102,12 @@ def get_solution_paths_dict_for_years() -> dict[int, dict[int, list[str]]]:
 
 # Color if a part is not completed
 NOT_COMPLETED_COLOR = ImageColor.getrgb("#333333")
+TEXT_BACKDROP = ImageColor.getrgb("#6C6A6A")
+# Add Backdrop if too bright
+THRESHOLD = 45
+TEXT_WHITE = ImageColor.getrgb("#FFFFFF")
+TEXT_STROKE_WEIGHT = 0
+
 
 # Width of each tile in the README.md.
 # 161px is a rather specific number, with it exactly 5 tiles fit into a row. It is possible to go
@@ -245,13 +251,17 @@ class HTML:
 def darker_color(c: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     return c[0] - 10, c[1] - 10, c[2] - 10, 255
 
+def luminance(color):
+    return (0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2])
+
+def is_similar(color_a, color_b, threshold):
+    return abs(luminance(color_a) - luminance(color_b)) < threshold
 
 def get_alternating_background(languages, both_parts_completed=True, *, stripe_width=20):
     colors = [ImageColor.getrgb(extension_to_color[language]) for language in languages]
     if len(colors) == 1:
         colors.append(darker_color(colors[0]))
     image = Image.new("RGB", (200, 100), NOT_COMPLETED_COLOR)
-
     def fill_with_colors(colors, fill_only_half):
         for x in range(image.width):
             for y in range(image.height):
@@ -291,29 +301,35 @@ def generate_day_tile_image(day: str, year: str, languages: list[str], day_score
     image = get_alternating_background(languages, not (day_scores is None or day_scores.time2 is None))
     drawer = ImageDraw(image)
     font_color = "white"
-
+    
+    tempcolors = [ImageColor.getrgb(extension_to_color[language]) for language in languages]
+    TEXT_STROKE_WEIGHT = 0
+    for color in tempcolors:
+        if(is_similar(color,TEXT_WHITE, THRESHOLD)):
+            TEXT_STROKE_WEIGHT = 1
+    
     # === Left side ===
-    drawer.text((3, -5), "Day", fill=font_color, align="left", font=main_font(20))
-    drawer.text((1, -10), str(day), fill=font_color, align="center", font=main_font(75))
+    drawer.text((3, -5), "Day", fill=font_color, align="left", font=main_font(20),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+    drawer.text((1, -10), str(day), fill=font_color, align="center", font=main_font(75),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
     # Calculate font size based on number of characters, because it might overflow
     lang_as_str = " ".join(languages)
     lang_font_size = max(6, int(18 - max(0, len(lang_as_str) - 8) * 1.3))
-    drawer.text((0, 74), lang_as_str, fill=font_color, align="left", font=secondary_font(lang_font_size))
+    drawer.text((0, 74), lang_as_str, fill=font_color, align="left", font=secondary_font(lang_font_size),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
 
     # === Right side (P1 & P2) ===
     for part in (1, 2):
         y = 50 if part == 2 else 0
         time, rank = getattr(day_scores, f"time{part}", None), getattr(day_scores, f"rank{part}", None)
         if day_scores is not None and time is not None:
-            drawer.text((104, -5 + y), f"P{part} ", fill=font_color, align="left", font=main_font(25))
+            drawer.text((104, -5 + y), f"P{part} ", fill=font_color, align="left", font=main_font(25),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
             if SHOW_CHECKMARK_INSTEAD_OF_TIME_RANK:
                 drawer.line((160, 35 + y, 150, 25 + y), fill=font_color, width=2)
                 drawer.line((160, 35 + y, 180, 15 + y), fill=font_color, width=2)
                 continue
-            drawer.text((105, 25 + y), "time", fill=font_color, align="right", font=secondary_font(10))
-            drawer.text((105, 35 + y), "rank", fill=font_color, align="right", font=secondary_font(10))
-            drawer.text((143, 3 + y), format_time(time), fill=font_color, align="right", font=secondary_font(18))
-            drawer.text((133, 23 + y), f"{rank:>6}", fill=font_color, align="right", font=secondary_font(18))
+            drawer.text((105, 25 + y), "time", fill=font_color, align="right", font=secondary_font(10),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+            drawer.text((105, 35 + y), "rank", fill=font_color, align="right", font=secondary_font(10),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+            drawer.text((143, 3 + y), format_time(time), fill=font_color, align="right", font=secondary_font(18),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+            drawer.text((133, 23 + y), f"{rank:>6}", fill=font_color, align="right", font=secondary_font(18),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
         else:
             drawer.line((140, 15 + y, 160, 35 + y), fill=font_color, width=2)
             drawer.line((140, 35 + y, 160, 15 + y), fill=font_color, width=2)
