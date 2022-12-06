@@ -23,6 +23,7 @@ from collections import namedtuple
 from functools import cache
 from pathlib import Path
 import re
+from typing import Literal
 
 import requests
 from PIL import Image, ImageColor
@@ -40,7 +41,7 @@ IMAGE_DIR = AOC_DIR / "Media"
 # Path to the README file where the tiles should be added
 README_PATH = AOC_DIR / "README.md"
 
-# Path to the README file where the tiles should be added
+# Path to the cookie session file
 SESSION_COOKIE_PATH = AOC_DIR / "session.cookie"
 
 # Whether the graphic should be created for days that have not been completed yet. Note that missing days between
@@ -58,15 +59,24 @@ YEAR_PATTERN = r"\d{4}"
 DAY_PATTERN = r"Day \d{1,2}"
 
 
+# On how to improve legibility of the text when the background is white, outline will add a dark outline around
+# the text, "text" will make the text itself dark, none will not change the text color (leaves it white)
+CONTRAST_IMPROVEMENT_TYPE: Literal["none", "outline", "dark"] = "outline"
+
+
 # You can change this code entirely, or just change patterns above. You get more control if you change the code.
 def get_solution_paths_dict_for_years() -> dict[int, dict[int, list[str]]]:
     """Returns a dictionary which maps years to days to a list of solution paths,
+
     E.g.: {2022: {1: [Path("2022/01/01.py"), Path("2022/01/01.kt")], ...}}
+
     This functions gives you more control of which solutions should be shown in the tiles. For example, you
     can filter by extension, or only show a single solution, or show tiles for days that have been completed
     but do not have a solution.
+
     These can also be links to external solutions, e.g. if you want to show a solution from a different repository.
     (Untested however)
+
     """
     solution_paths_dict: dict[int, dict[int, list[str]]] = {}
 
@@ -102,12 +112,10 @@ def get_solution_paths_dict_for_years() -> dict[int, dict[int, list[str]]]:
 
 # Color if a part is not completed
 NOT_COMPLETED_COLOR = ImageColor.getrgb("#333333")
-TEXT_BACKDROP = ImageColor.getrgb("#6C6A6A")
-# Add Backdrop if too bright
-THRESHOLD = 45
-TEXT_WHITE = ImageColor.getrgb("#FFFFFF")
-TEXT_STROKE_WEIGHT = 0
-
+OUTLINE_COLOR = ImageColor.getrgb("#6C6A6A")
+# Add outline if too bright ( = too similar to TEXT_WHITE)
+CONTRAST_IMPROVEMENT_THRESHOLD = 45  # Range from 0 to 255
+TEXT_COLOR = ImageColor.getrgb("#FFFFFF")
 
 # Width of each tile in the README.md.
 # 161px is a rather specific number, with it exactly 5 tiles fit into a row. It is possible to go
@@ -164,7 +172,7 @@ def get_paths_matching_regex(path: Path, pattern: str):
 
 def find_recursive_solution_files(directory: Path) -> list[Path]:
     solution_paths = []
-    for path in directory.rglob('*'):
+    for path in directory.rglob("*"):
         if path.is_file() and path.suffix in extension_to_color:
             solution_paths.append(path)
     return solution_paths
@@ -186,8 +194,7 @@ def parse_leaderboard(leaderboard_path: Path) -> dict[int, DayScores]:
             day, *scores = re.split(r"\s+", line.strip())
             # replace "-" with None to be able to handle the data later, like if no score existed for the day
             scores = [s if s != "-" else None for s in scores]
-            assert len(scores) in (
-                3, 6), f"Number scores for {day=} ({scores}) are not 3 or 6."
+            assert len(scores) in (3, 6), f"Number scores for {day=} ({scores}) are not 3 or 6."
             leaderboard[int(day)] = DayScores(*scores)
         return leaderboard
 
@@ -206,7 +213,11 @@ def request_leaderboard(year: int) -> dict[int, DayScores]:
             return leaderboard
     with open(SESSION_COOKIE_PATH) as cookie_file:
         session_cookie = cookie_file.read().strip()
-        data = requests.get(PERSONAL_LEADERBOARD_URL.format(year=year), headers={"User-Agent": "https://github.com/LiquidFun/adventofcode by Brutenis Gliwa"}, cookies={"session": session_cookie}).text
+        data = requests.get(
+            PERSONAL_LEADERBOARD_URL.format(year=year),
+            headers={"User-Agent": "https://github.com/LiquidFun/adventofcode by Brutenis Gliwa"},
+            cookies={"session": session_cookie},
+        ).text
         leaderboard_path.parent.mkdir(exist_ok=True, parents=True)
         with open(leaderboard_path, "w") as file:
             file.write(data)
@@ -251,17 +262,23 @@ class HTML:
 def darker_color(c: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     return c[0] - 10, c[1] - 10, c[2] - 10, 255
 
-def luminance(color):
-    return (0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2])
 
-def is_similar(color_a, color_b, threshold):
+# Luminance of color
+def luminance(color):
+    return 0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2]
+
+
+# How similar is color_a to color_b
+def color_similarity(color_a, color_b, threshold):
     return abs(luminance(color_a) - luminance(color_b)) < threshold
+
 
 def get_alternating_background(languages, both_parts_completed=True, *, stripe_width=20):
     colors = [ImageColor.getrgb(extension_to_color[language]) for language in languages]
     if len(colors) == 1:
         colors.append(darker_color(colors[0]))
     image = Image.new("RGB", (200, 100), NOT_COMPLETED_COLOR)
+
     def fill_with_colors(colors, fill_only_half):
         for x in range(image.width):
             for y in range(image.height):
@@ -300,42 +317,50 @@ def generate_day_tile_image(day: str, year: str, languages: list[str], day_score
     """Saves a graphic for a given day and year. Returns the path to it."""
     image = get_alternating_background(languages, not (day_scores is None or day_scores.time2 is None))
     drawer = ImageDraw(image)
-    font_color = "white"
-    
-    tempcolors = [ImageColor.getrgb(extension_to_color[language]) for language in languages]
-    TEXT_STROKE_WEIGHT = 0
-    for color in tempcolors:
-        if(is_similar(color,TEXT_WHITE, THRESHOLD)):
-            TEXT_STROKE_WEIGHT = 1
-    
+    text_kwargs = {"fill": TEXT_COLOR}
+
+    # Get all colors of the day, check if any one is similar to TEXT_COLOR
+    # If yes, add outline
+    for language in languages:
+        color = ImageColor.getrgb(extension_to_color[language])
+        if color_similarity(color, TEXT_COLOR, CONTRAST_IMPROVEMENT_THRESHOLD):
+            if "outline" in CONTRAST_IMPROVEMENT_TYPE:
+                text_kwargs["stroke_width"] = 1
+                text_kwargs["stroke_fill"] = OUTLINE_COLOR
+            if "dark" in CONTRAST_IMPROVEMENT_TYPE:
+                text_kwargs["fill"] = NOT_COMPLETED_COLOR
+            break
+
+    font_color = text_kwargs["fill"]
+
     # === Left side ===
-    drawer.text((3, -5), "Day", fill=font_color, align="left", font=main_font(20),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
-    drawer.text((1, -10), str(day), fill=font_color, align="center", font=main_font(75),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+    drawer.text((3, -5), "Day", align="left", font=main_font(20), **text_kwargs)
+    drawer.text((1, -10), str(day), align="center", font=main_font(75), **text_kwargs)
     # Calculate font size based on number of characters, because it might overflow
     lang_as_str = " ".join(languages)
     lang_font_size = max(6, int(18 - max(0, len(lang_as_str) - 8) * 1.3))
-    drawer.text((0, 74), lang_as_str, fill=font_color, align="left", font=secondary_font(lang_font_size),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+    drawer.text((0, 74), lang_as_str, align="left", font=secondary_font(lang_font_size), **text_kwargs)
 
     # === Right side (P1 & P2) ===
     for part in (1, 2):
         y = 50 if part == 2 else 0
         time, rank = getattr(day_scores, f"time{part}", None), getattr(day_scores, f"rank{part}", None)
         if day_scores is not None and time is not None:
-            drawer.text((104, -5 + y), f"P{part} ", fill=font_color, align="left", font=main_font(25),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+            drawer.text((104, -5 + y), f"P{part} ", align="left", font=main_font(25), **text_kwargs)
             if SHOW_CHECKMARK_INSTEAD_OF_TIME_RANK:
                 drawer.line((160, 35 + y, 150, 25 + y), fill=font_color, width=2)
                 drawer.line((160, 35 + y, 180, 15 + y), fill=font_color, width=2)
                 continue
-            drawer.text((105, 25 + y), "time", fill=font_color, align="right", font=secondary_font(10),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
-            drawer.text((105, 35 + y), "rank", fill=font_color, align="right", font=secondary_font(10),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
-            drawer.text((143, 3 + y), format_time(time), fill=font_color, align="right", font=secondary_font(18),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
-            drawer.text((133, 23 + y), f"{rank:>6}", fill=font_color, align="right", font=secondary_font(18),stroke_width=TEXT_STROKE_WEIGHT, stroke_fill=TEXT_BACKDROP)
+            drawer.text((105, 25 + y), "time", align="right", font=secondary_font(10), **text_kwargs)
+            drawer.text((105, 35 + y), "rank", align="right", font=secondary_font(10), **text_kwargs)
+            drawer.text((143, 3 + y), format_time(time), align="right", font=secondary_font(18), **text_kwargs)
+            drawer.text((133, 23 + y), f"{rank:>6}", align="right", font=secondary_font(18), **text_kwargs)
         else:
             drawer.line((140, 15 + y, 160, 35 + y), fill=font_color, width=2)
             drawer.line((140, 35 + y, 160, 15 + y), fill=font_color, width=2)
 
-    if day_scores is None:
-        drawer.line((15, 85, 85, 85), fill=font_color, width=2)
+    if day_scores is None and not languages:
+        drawer.line((15, 85, 85, 85), fill=TEXT_COLOR, width=2)
 
     # === Divider lines ===
     drawer.line((100, 5, 100, 95), fill=font_color, width=1)
@@ -387,7 +412,7 @@ def handle_year(year: int, day_to_solutions: dict[int, list[str]]):
         html.push(f"{year} - {stars} ⭐")
     max_day = 25 if CREATE_ALL_DAYS else max(*day_to_solutions, *leaderboard)
     fill_empty_days_in_dict(day_to_solutions, max_day)
-    for day, solutions in day_to_solutions.items():
+    for day, solutions in sorted(day_to_solutions.items()):
         handle_day(day, year, solutions, html, leaderboard.get(day, None))
 
     with open(README_PATH, "r") as file:
