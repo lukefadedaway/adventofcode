@@ -10,7 +10,7 @@ The graphic below has been created with [AoCTiles/create_aoc_tiles.py](AoCTiles/
 
 <!-- AOC TILES BEGIN -->
 <h1 align="center">
-  2022 - 30 ⭐
+  2022 - 32 ⭐
 </h1>
 <a href="2022/Day 1/main.cpp">
   <img src="Media/2022/01.png" width="161px">
@@ -69,7 +69,7 @@ The graphic below has been created with [AoCTiles/create_aoc_tiles.py](AoCTiles/
 <a href="None">
   <img src="Media/2022/19.png" width="161px">
 </a>
-<a href="None">
+<a href="2022/Day 20/main.py">
   <img src="Media/2022/20.png" width="161px">
 </a>
 <a href="None">
