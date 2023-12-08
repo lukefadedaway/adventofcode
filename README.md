@@ -4,7 +4,7 @@
 
 ---
 
-The graphic below has been created with [AoCTiles/create_aoc_tiles.py](AoCTiles/create_aoc_tiles.py) script by [LiquidFun](https://github.com/LiquidFun).
+The graphic below has been created with [aoc-tiles](.pre-commit-config.yaml) script by [LiquidFun](https://github.com/LiquidFun).
 
 ---
 
