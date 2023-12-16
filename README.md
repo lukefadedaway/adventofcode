@@ -10,7 +10,7 @@ The graphic below has been created with [aoc-tiles](.pre-commit-config.yaml) scr
 
 <!-- AOC TILES BEGIN -->
 <h1 align="center">
-  2023 - 27 ⭐
+  2023 - 31 ⭐
 </h1>
 <a href="2023/Day 1/sol.py">
   <img src=".aoc_tiles/tiles/2023/01.png" width="161px">
@@ -53,6 +53,12 @@ The graphic below has been created with [aoc-tiles](.pre-commit-config.yaml) scr
 </a>
 <a href="2023/Day 14/sol.py">
   <img src=".aoc_tiles/tiles/2023/14.png" width="161px">
+</a>
+<a href="2023/Day 15/sol.py">
+  <img src=".aoc_tiles/tiles/2023/15.png" width="161px">
+</a>
+<a href="2023/Day 16/sol.py">
+  <img src=".aoc_tiles/tiles/2023/16.png" width="161px">
 </a>
 <h1 align="center">
   2022 - 34 ⭐
