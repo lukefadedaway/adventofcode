@@ -1,8 +1,11 @@
 from sys import stdin
 from queue import Queue
+import math
 
 counthigh = countlow = 0
 q = Queue()
+andrxparent = ""
+cyclecount = 0
 
 class Device:
     def __init__(self, type, is_on=False, inputs=None, outputs=[]):
@@ -12,9 +15,13 @@ class Device:
         self.outputs = outputs
     
     def handleinput(self, origin, signal):
-        global countlow, counthigh, q
+        global countlow, counthigh, q, andrxparent, rxcycle, graph, cyclecount
         #print("handle:",self.type,origin, signal)
         self.inputs[origin] = signal
+        if self.type == "&"+andrxparent:
+            for i, good in enumerate(graph[andrxparent].inputs.values()):
+                if good:
+                    rxcycle[i] = cyclecount
         countlow += (1-signal)
         counthigh += signal
         if self.type[0] == '&':
@@ -36,7 +43,7 @@ class Device:
         if self.type[0] == 'b':
             for o in self.outputs:
                 q.put((self.type,o,signal))
-
+        
 lines = [i.strip() for i in stdin.read().splitlines()]
 graph = {}
 for line in lines:
@@ -44,6 +51,8 @@ for line in lines:
     name2 = ''.join(name)
     if name[0] in ['&','%']:
         name2 = name[1:]
+    if name[0] == '&' and "rx" in outputs:
+        andrxparent = name2
     graph[name2] = Device(name, False, {}, [x for x in outputs.split(', ')])
 for line in lines:
     name, outputs = line.split(' -> ')
@@ -55,11 +64,15 @@ for line in lines:
             graph[x2] = Device("-"+x, False, {}, [])
         graph[x].inputs[name] = 0
 graph['broadcaster'].inputs['b'] = 0
-solution2 = 0
-for _ in range(1000):
+rxcycle = [False] * len(graph[andrxparent].inputs)
+for i in range(10001):
+    cyclecount = i+1
     q.put(('b','broadcaster',0))
     while q.qsize():
         nextp = q.get()
         graph[nextp[1]].handleinput(nextp[0],nextp[2])
-print("Part 1:",countlow*counthigh)
-# 238815727638557
+    if i == 999:
+        print("Part 1:",countlow*counthigh)
+    if all(rxcycle):
+        print("Part 2:", math.prod(rxcycle))
+        break
