@@ -1,4 +1,4 @@
-from sys import stdin
+from sys import stdin 
 
 left = []
 right = []

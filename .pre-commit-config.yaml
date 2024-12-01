@@ -1,6 +1,6 @@
 repos:
-  - repo: https://github.com/LiquidFun/aoc_tiles
-    rev: 0.6.2
-    hooks:
-      - id: aoc-tiles
-        args: ["--auto-add-tiles-to-git=amend","--what-to-show-on-right-side", "time_and_rank", "--count-as-solved-when", "both", "--language-sorting", "hc,rs,jl,kt,py", "--count-as-solved-when=on_leaderboard"]
+    - repo: https://github.com/LiquidFun/aoc_tiles
+      rev: 0.6.2
+      hooks:
+          - id: aoc-tiles
+            args: ["--auto-add-tiles-to-git=amend","--what-to-show-on-right-side", "time_and_rank", "--count-as-solved-when", "both", "--language-sorting", "hc,rs,jl,kt,py", "--count-as-solved-when=on_leaderboard"]
