@@ -12,24 +12,26 @@ def checkrules(line, rules):
                 return 0
     return t[len(t)//2]
 
-# too high on real input, 5434 > 5184
-# does not produce correct lines by only swapping the mistakes 
 def checkrules2(line, rules):
     t = [int(a) for a in line.strip().split(",")]
-    i = 0
-    while i < len(t):
-        x = t[i]
-        for j in range(i):
-            if x not in rules:
-                continue
-            if t[j] in rules[x]:
-                temp = t[j]
-                t[j] = x
-                t[i] = temp
-                i = -1
-        i += 1
-    print("c2",checkrules(line, rules))
-    return t[len(t)//2]
+    tn = []
+    for x in t:
+        if tn == []:
+            tn.append(x)
+        else:
+            index = len(tn)
+            for i in range(len(tn)-1, -1, -1):
+                a = tn[i]
+                if a not in rules:
+                    index -= 1
+                    continue
+                if x not in rules[a]:
+                    index -= 1
+                    continue
+                if x in rules[a]:
+                    break
+            tn = tn[:index] + [x] + tn[index:]
+    return tn[len(t)//2]
 
 rules_banned_predecessors = {}
 rulesection = True
