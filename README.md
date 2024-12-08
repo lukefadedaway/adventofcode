@@ -10,10 +10,10 @@ The graphic below has been created with [aoc-tiles](.pre-commit-config.yaml) scr
 
 <!-- AOC TILES BEGIN -->
 <h1 align="center">
-  Advent of Code - 90/464 ⭐
+  Advent of Code - 92/466 ⭐
 </h1>
 <h1 align="center">
-  2024 - 13 ⭐ - Python
+  2024 - 15 ⭐ - Python
 </h1>
 <a href="2024/Day 1/sol.py">
   <img src=".aoc_tiles/tiles/2024/01.png" width="161px">
@@ -35,6 +35,9 @@ The graphic below has been created with [aoc-tiles](.pre-commit-config.yaml) scr
 </a>
 <a href="2024/Day 7/sol.py">
   <img src=".aoc_tiles/tiles/2024/07.png" width="161px">
+</a>
+<a href="2024/Day 8/sol.py">
+  <img src=".aoc_tiles/tiles/2024/08.png" width="161px">
 </a>
 <h1 align="center">
   2023 - 43 ⭐ - Python
