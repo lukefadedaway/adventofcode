@@ -38,7 +38,7 @@ while i < len(fs2):
         continue
     else:
         i2 = len(fs2) - 1
-        while i2 > i:
+        while i2 >= i:
             if fs2[i2][0] == -1:
                 if fs2[i2][1] == fs2[i][1]:
                     fs2[i2] = fs2[i]
@@ -62,5 +62,5 @@ for i in range(len(fs)):
     if fs1[i] != -1:
         sol2 += (fs1[i] * i)
 print(sol1)
-# Too high
+# Too high 6781700067558
 print(sol2)
