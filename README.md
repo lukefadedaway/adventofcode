@@ -10,46 +10,46 @@ The graphic below has been created with [aoc-tiles](.pre-commit-config.yaml) scr
 
 <!-- AOC TILES BEGIN -->
 <h1 align="center">
-  Advent of Code - 131/526 ⭐
+  Advent of Code - 131/534 ⭐
 </h1>
 <h1 align="center">
   2025 - 24 ⭐ - Python
 </h1>
 <a href="2025/Day 1/sol.py">
-  <img src=".aoc_tiles/tiles/2025/01.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/01.png" width="203px">
 </a>
 <a href="2025/Day 2/sol.py">
-  <img src=".aoc_tiles/tiles/2025/02.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/02.png" width="203px">
 </a>
 <a href="2025/Day 3/sol.py">
-  <img src=".aoc_tiles/tiles/2025/03.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/03.png" width="203px">
 </a>
 <a href="2025/Day 4/sol.py">
-  <img src=".aoc_tiles/tiles/2025/04.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/04.png" width="203px">
 </a>
 <a href="2025/Day 5/sol.py">
-  <img src=".aoc_tiles/tiles/2025/05.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/05.png" width="203px">
 </a>
 <a href="2025/Day 6/sol.py">
-  <img src=".aoc_tiles/tiles/2025/06.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/06.png" width="203px">
 </a>
 <a href="2025/Day 7/sol.py">
-  <img src=".aoc_tiles/tiles/2025/07.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/07.png" width="203px">
 </a>
 <a href="2025/Day 8/sol.py">
-  <img src=".aoc_tiles/tiles/2025/08.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/08.png" width="203px">
 </a>
 <a href="2025/Day 9/sol.py">
-  <img src=".aoc_tiles/tiles/2025/09.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/09.png" width="203px">
 </a>
 <a href="2025/Day 10/sol.py">
-  <img src=".aoc_tiles/tiles/2025/10.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/10.png" width="203px">
 </a>
 <a href="2025/Day 11/sol.py">
-  <img src=".aoc_tiles/tiles/2025/11.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/11.png" width="203px">
 </a>
 <a href="2025/Day 12/sol.py">
-  <img src=".aoc_tiles/tiles/2025/12.png" width="161px">
+  <img src=".aoc_tiles/tiles/2025/12.png" width="203px">
 </a>
 <h1 align="center">
   2024 - 30 ⭐ - Python
